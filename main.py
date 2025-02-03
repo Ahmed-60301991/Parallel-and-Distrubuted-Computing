@@ -2,7 +2,7 @@
 
 import sys
 import os
-from src.threading import *
-from src.processes import *
-run_threading()
+from src.threads import *
+from src.multiprocessors import *
+run_threads()
 run_multiprocessing()
