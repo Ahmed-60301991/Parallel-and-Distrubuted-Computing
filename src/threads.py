@@ -1,38 +1,37 @@
 import threading
-import time
-import random
-import string
-from src.tasks import *
 
-# Measure the total time for both operations
-def run_threads():
-    total_start_time = time.time()
+# Number of threads to create
+num_threads = 4
 
-    # Number of items for each task
-    num_items = 1000
-    split_size = num_items // 2
+# Create and start threads in a loop
+threads = []
+for i in range(num_threads):
+    thread = threading.Thread(target=worker, args=(i,))
+    threads.append(thread)
+    thread.start()
 
-    # Create threads for both functions, dividing the work
-    # Letters (2 threads)
-    thread_letters1 = threading.Thread(target=join_random_letters, args=(0, split_size))
-    thread_letters2 = threading.Thread(target=join_random_letters, args=(split_size, num_items))
+# Wait for all threads to finish
+for thread in threads:
+    thread.join()
 
-    # Numbers (2 threads)
-    thread_numbers1 = threading.Thread(target=add_random_numbers, args=(0, split_size))
-    thread_numbers2 = threading.Thread(target=add_random_numbers, args=(split_size, num_items))
+print("All threads have finished")
 
-    # Start the threads
-    thread_letters1.start()
-    thread_letters2.start()
-    thread_numbers1.start()
-    thread_numbers2.start()
-
-    # Wait for all threads to complete
-    thread_letters1.join()
-    thread_letters2.join()
-    thread_numbers1.join()
-    thread_numbers2.join()
-
-    total_end_time = time.time()
-    print(f"Total time taken (threading): {total_end_time - total_start_time} seconds")
-    return total_end_time - total_start_time
+def threaded_sum(n, num_threads=4):
+    def partial_sum(start, end, result_list, index):
+        result_list[index] = sum(range(start, end))
+    
+    threads = []
+    chunk_size = n // num_threads
+    results = [0] * num_threads
+    
+    for i in range(num_threads):
+        start = i * chunk_size + 1
+        end = (i + 1) * chunk_size + 1 if i != num_threads - 1 else n + 1
+        thread = threading.Thread(target=partial_sum, args=(start, end, results, i))
+        threads.append(thread)
+        thread.start()
+    
+    for thread in threads:
+        thread.join()
+    
+    return sum(results)

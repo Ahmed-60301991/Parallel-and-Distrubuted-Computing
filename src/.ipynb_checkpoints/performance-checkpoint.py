@@ -1,20 +1,20 @@
 import time
 from src.tasks import *
-from src.threads import run_threads
-from src.multiprocessors import run_multiprocessing
+from src.threads import *
+from src.multiprocessors import *
 
 # Measure sequential execution
-def run_sequential():
+def sum_time():
     total_start_time = time.time()
     
     num_items = 10000
     
-    # Sequential execution of the functions
-    join_random_letters(0, num_items)
-    add_random_numbers(0, num_items)
+    total_sum = calculate_sum(num_items)
     
     total_end_time = time.time()
-    return total_end_time - total_start_time
+    total_time = total_end_time - total_start_time
+    print(f"Sum = {total_sum}")
+    print(f"Total Time = {total_time}")
 
 def performance_analysis():
     # Run sequential case to get baseline time
