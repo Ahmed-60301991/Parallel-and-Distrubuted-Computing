@@ -35,3 +35,4 @@ def run_threads():
 
     total_end_time = time.time()
     print(f"Total time taken (threading): {total_end_time - total_start_time} seconds")
+    return total_end_time - total_start_time
