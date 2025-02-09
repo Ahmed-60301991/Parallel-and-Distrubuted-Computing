@@ -62,6 +62,3 @@ def performance_analysis():
     
     print(f"Gustafson's Speedup (Threads): {gustafson_speedup_threads}")
     print(f"Gustafson's Speedup (Multiprocessing): {gustafson_speedup_multiprocessing}")
-
-# Run the performance analysis
-performance_analysis()
