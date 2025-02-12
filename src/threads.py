@@ -1,20 +1,15 @@
 import threading
 
-# Number of threads to create
-num_threads = 4
-
-# Create and start threads in a loop
-threads = []
-for i in range(num_threads):
-    thread = threading.Thread(target=worker, args=(i,))
-    threads.append(thread)
-    thread.start()
-
-# Wait for all threads to finish
-for thread in threads:
-    thread.join()
-
-print("All threads have finished")
+"""
+Calculates the sum of numbers from 1 to n using multiple threads.
+    
+Parameters:
+n (int): The upper limit of the range to sum.
+num_threads (int): The number of threads to use.
+    
+Returns:
+int: The sum of numbers from 1 to n computed using threads.
+"""
 
 def threaded_sum(n, num_threads=4):
     def partial_sum(start, end, result_list, index):

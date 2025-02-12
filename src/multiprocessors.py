@@ -1,20 +1,15 @@
 import multiprocessing
 
-# Number of processes to create
-num_processes = 4
-
-# Create and start processes in a loop
-processes = []
-for i in range(num_processes):
-    process = multiprocessing.Process(target=worker, args=(i,))
-    processes.append(process)
-    process.start()
-
-# Wait for all processes to finish
-for process in processes:
-    process.join()
-
-print("All processes have finished")
+"""
+Calculates the sum of numbers from 1 to n using multiple processes.
+    
+Parameters:
+n (int): The upper limit of the range to sum.
+num_processes (int): The number of processes to use.
+    
+Returns:
+int: The sum of numbers from 1 to n computed using processes.
+"""
 
 def process_sum(n, num_processes=4):
     def partial_sum(start, end, queue):
