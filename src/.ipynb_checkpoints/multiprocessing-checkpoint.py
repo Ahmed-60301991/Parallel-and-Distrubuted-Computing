@@ -3,6 +3,7 @@ import random
 from multiprocessing import Process, Queue, Pool, cpu_count
 from concurrent.futures import ProcessPoolExecutor
 from src.square import square
+numberSize = 10**6 
 
 def worker(nums, queue):
     """Worker function to compute squares and store in queue."""
@@ -11,7 +12,7 @@ def worker(nums, queue):
 
 def run_multiprocessing_process():
     """Multiprocessing with a limited number of processes."""
-    numbers = [random.randint(1, 100) for _ in range(10**6)]
+    numbers = [random.randint(1, 100) for _ in range(numberSize)]
     num_workers = min(cpu_count(), 8)  # ✅ Use CPU cores but limit to 8
     chunk_size = len(numbers) // num_workers
 
@@ -40,7 +41,7 @@ def run_multiprocessing_process():
 
 def run_multiprocessing_pool_map():
     """Multiprocessing: Pool with map()"""
-    numbers = [random.randint(1, 100) for _ in range(10**6)]
+    numbers = [random.randint(1, 100) for _ in range(numberSize)]
 
     start = time.time()
     with Pool() as pool:
@@ -51,7 +52,7 @@ def run_multiprocessing_pool_map():
 
 def run_multiprocessing_pool_apply():
     """Multiprocessing: Pool with apply()"""
-    numbers = [random.randint(1, 100) for _ in range(10**6)]
+    numbers = [random.randint(1, 100) for _ in range(numberSize)]
 
     start = time.time()
     with Pool() as pool:
@@ -62,7 +63,7 @@ def run_multiprocessing_pool_apply():
 
 def run_process_pool_executor():
     """Multiprocessing: ProcessPoolExecutor"""
-    numbers = [random.randint(1, 100) for _ in range(10**6)]
+    numbers = [random.randint(1, 100) for _ in range(numberSize)]
 
     start = time.time()
     with ProcessPoolExecutor() as executor:

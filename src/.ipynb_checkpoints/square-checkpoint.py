@@ -1,2 +1,5 @@
-def square (x=0):
-    return x*x
+# square.py
+
+def square(n):
+    """Compute the square of an integer."""
+    return n * n
