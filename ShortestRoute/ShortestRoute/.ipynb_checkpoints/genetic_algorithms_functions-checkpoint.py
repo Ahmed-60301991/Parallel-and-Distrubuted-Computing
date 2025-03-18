@@ -16,14 +16,15 @@ def calculate_fitness(route,
     """
     total_distance = 0
     
+    # add your code here.
     for i in range(len(route) - 1):
-        dist = distance_matrix[route[i], route[i + 1]]
-        if dist == 100000:  # Invalid route
-            return -1e6
-        total_distance += dist
-    
-    # Ensure route returns to depot (node 0)
-    total_distance += distance_matrix[route[-1], route[0]]
+        node1, node2 = route[i], route[i + 1]
+        distance = distance_matrix[node1, node2]
+        
+        if distance == 10000:  # Infeasible route check
+            return -1e6  # Large negative penalty
+
+        total_distance += distance
     
     return total_distance
 
@@ -46,6 +47,7 @@ def select_in_tournament(population,
     """
     selected = []
     
+    # add your code here.
     for _ in range(number_tournaments):
         idx=np.random.choice(len(population),tournament_size,replace=False)
         best_idx = idx[np.argmax(scores[idx])]
