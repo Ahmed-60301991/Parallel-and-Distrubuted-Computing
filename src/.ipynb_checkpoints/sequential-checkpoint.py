@@ -1,11 +1,18 @@
 import time
 import random
 from src.square import square
-numberSize = 10**6 
+
+# Define global variable for list size
+NUMBER_SIZE = 10**6  
 
 def run_sequential():
-    """Computes squares sequentially for 1 million numbers."""
-    numbers = [random.randint(1, 100) for _ in range(numberSize)]
+    """
+    Computes squares sequentially for 1 million numbers.
+
+    Returns:
+        float: Execution time in seconds.
+    """
+    numbers = [random.randint(1, 100) for _ in range(NUMBER_SIZE)]
 
     start = time.time()
     results = [square(num) for num in numbers] 

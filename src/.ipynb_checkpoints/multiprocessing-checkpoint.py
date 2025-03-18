@@ -3,17 +3,30 @@ import random
 from multiprocessing import Process, Queue, Pool, cpu_count
 from concurrent.futures import ProcessPoolExecutor
 from src.square import square
-numberSize = 10**6 
+
+# Define global variable for list size
+NUMBER_SIZE = 10**6  
 
 def worker(nums, queue):
-    """Worker function to compute squares and store in queue."""
+    """
+    Worker function to compute squares and store results in a queue.
+
+    Parameters:
+        nums (list): List of numbers to square.
+        queue (Queue): Queue to store results.
+    """
     results = [square(num) for num in nums]
     queue.put(results)
 
 def run_multiprocessing_process():
-    """Multiprocessing with a limited number of processes."""
-    numbers = [random.randint(1, 100) for _ in range(numberSize)]
-    num_workers = min(cpu_count(), 8)  # ✅ Use CPU cores but limit to 8
+    """
+    Multiprocessing with a limited number of processes.
+
+    Returns:
+        float: Execution time in seconds.
+    """
+    numbers = [random.randint(1, 100) for _ in range(NUMBER_SIZE)]
+    num_workers = min(cpu_count(), 8)  # Use CPU cores but limit to 8
     chunk_size = len(numbers) // num_workers
 
     queue = Queue()
@@ -22,10 +35,14 @@ def run_multiprocessing_process():
     start = time.time()
 
     for i in range(num_workers):
-        chunk = numbers[i * chunk_size: (i + 1) * chunk_size]
+        start_idx = i * chunk_size
+        end_idx = (i + 1) * chunk_size if i != num_workers - 1 else len(numbers)
+
+        chunk = numbers[start_idx:end_idx]
         p = Process(target=worker, args=(chunk, queue))
         processes.append(p)
         p.start()
+
 
     results = []
     for _ in processes:
@@ -40,8 +57,8 @@ def run_multiprocessing_process():
     return end - start
 
 def run_multiprocessing_pool_map():
-    """Multiprocessing: Pool with map()"""
-    numbers = [random.randint(1, 100) for _ in range(numberSize)]
+    """Multiprocessing using Pool.map()."""
+    numbers = [random.randint(1, 100) for _ in range(NUMBER_SIZE)]
 
     start = time.time()
     with Pool() as pool:
@@ -51,8 +68,8 @@ def run_multiprocessing_pool_map():
     return end - start
 
 def run_multiprocessing_pool_apply():
-    """Multiprocessing: Pool with apply()"""
-    numbers = [random.randint(1, 100) for _ in range(numberSize)]
+    """Multiprocessing using Pool.apply_async()."""
+    numbers = [random.randint(1, 100) for _ in range(NUMBER_SIZE)]
 
     start = time.time()
     with Pool() as pool:
@@ -62,11 +79,11 @@ def run_multiprocessing_pool_apply():
     return end - start
 
 def run_process_pool_executor():
-    """Multiprocessing: ProcessPoolExecutor"""
-    numbers = [random.randint(1, 100) for _ in range(numberSize)]
+    """Multiprocessing using ProcessPoolExecutor()."""
+    numbers = [random.randint(1, 100) for _ in range(NUMBER_SIZE)]
 
     start = time.time()
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(max_workers=8) as executor:
         results = list(executor.map(square, numbers))
     end = time.time()
 
