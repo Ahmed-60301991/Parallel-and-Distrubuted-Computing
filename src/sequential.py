@@ -3,7 +3,7 @@ import random
 from src.square import square
 
 # Define global variable for list size
-NUMBER_SIZE = 10**6  
+NUMBER_SIZE = 10**7  
 
 def run_sequential():
     """
