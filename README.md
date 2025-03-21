@@ -1,8 +1,23 @@
-1) Synchronization Metrics Used
+### SEQUENTIAL CODE OUTPUT
 
-    RLock: Prevents race conditions when multiple threads share  data (latest_temperatures and temperature_averages). Prevents unsafe updates by allowing a thread  to grab the lock again if it needs to.
-    Condition: Used for thread coordination, to update  temperatures every 1 second and averages every 5 seconds without the need to poll constantly.
+- **Generation 189**: Best calculate_fitness = 1192.0
+- **Generation 190**: Best calculate_fitness = 1192.0
+- **Generation 191**: Best calculate_fitness = 1192.0
+- **Generation 192**: Best calculate_fitness = 1192.0
+- **Regenerating population at generation 193** due to stagnation
+- **Generation 194**: Best calculate_fitness = 1187.0
+- **Generation 195**: Best calculate_fitness = 1187.0
+- **Generation 196**: Best calculate_fitness = 1187.0
+- **Generation 197**: Best calculate_fitness = 1187.0
+- **Generation 198**: Best calculate_fitness = 1187.0
+- **Regenerating population at generation 199** due to stagnation
 
-2)  Why No Metrics Were Required?
+---
 
-The professor did not ask for metrics because the lab concentrates on showing correct synchronization behaviour not on optimizing  performance. The task is rather basic and deterministic and thus performance bottlenecks are unlikely. Measures such  as execution time or lock contention are usually more important in high concurrency or high performance systems. Here the  goal is to make sure that shared data access is synchronized correctly not to measure system efficiency
+**Execution Time**: 19.92 seconds
+
+**Best Solution**:  
+[0, 25, 20, 30, 29, 31, 19, 28, 11, 9, 24, 27, 3, 14, 10, 12, 18, 23, 7, 22, 5, 4, 13, 15, 2, 8, 17, 1, 6, 26, 21, 16]
+
+**Total Distance**: 1187.0
+
