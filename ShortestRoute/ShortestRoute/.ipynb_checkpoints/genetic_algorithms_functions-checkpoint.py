@@ -120,7 +120,7 @@
 
 
 """
-Genetic Algorithm Helper Functions
+Genetic Algorithm Enhanced Helper Functions
 -----------------------------------
 """
 
