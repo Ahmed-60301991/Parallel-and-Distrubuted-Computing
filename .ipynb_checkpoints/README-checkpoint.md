@@ -68,3 +68,15 @@ Process 2 releasing Connection 1
 Process 4 could not acquire a connection.
 Process 3 releasing Connection 2
 Process 1 releasing Connection 0
+
+What are your conclusions for the square computations with 10⁶ and 10⁷ numbers?
+Sequential execution was efficient for smaller datasets, while multiprocessing with map() and one process per number performed well for larger data, utilizing CPU cores effectively. In contrast, apply() and ProcessPoolExecutor were significantly slower due to high overhead, making them unsuitable for large-scale tasks.
+
+What are your conclusions when testing both synchronous and asynchronous versions in the pool?
+The synchronous map() outperformed the asynchronous apply(), as it efficiently managed tasks in parallel. The asynchronous approach caused substantial delays due to its task-by-task execution, making it inefficient for large datasets.
+
+What happens if more processes try to access the pool than there are available connections?
+Excess processes were forced to wait until a connection became available. This prevented resource overuse and ensured stable operation.
+
+How does the semaphore prevent race conditions and ensure safe access to the connections?
+The semaphore limited the number of active connections, preventing multiple processes from accessing the same resource. Combined with locks, it maintained orderly access, avoiding race conditions and ensuring reliable connection management.
