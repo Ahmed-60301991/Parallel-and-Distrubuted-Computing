@@ -92,17 +92,28 @@
 Genetic Algorithm for Solving the Traveling Salesman Problem (Parallelized Version)
 ----------------------------------------------------------------
 """
-
+from mpi4py import MPI
 import numpy as np
 import pandas as pd
-import multiprocessing
+import time
 from genetic_algorithms_functions import (
     calculate_fitness, select_in_tournament, order_crossover, mutate, 
     generate_unique_population, adaptive_mutation_rate, local_search
 )
 
-# Load the distance matrix from CSV
-distance_matrix = pd.read_csv('city_distances.csv').to_numpy()
+# Initialize MPI
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()  # Rank of the current process
+size = comm.Get_size()  # Total number of processes
+
+# Load the distance matrix only on the root process
+if rank == 0:
+    distance_matrix = pd.read_csv('city_distances.csv').to_numpy()
+else:
+    distance_matrix = None
+
+# Broadcast the distance matrix to all processes
+distance_matrix = comm.bcast(distance_matrix, root=0)
 
 # Genetic Algorithm Parameters
 elitism_size = 2  # Number of elite individuals retained each generation
@@ -113,19 +124,22 @@ mutation_rate = 0.1  # Probability of mutation
 num_generations = 200  # Maximum number of generations
 stagnation_limit = 5  # Number of generations without improvement before regenerating population
 
-# Initialize population
-np.random.seed(42)  # Ensures reproducibility
-population = generate_unique_population(population_size, num_nodes)
+# Initialize population only on the root process
+if rank == 0:
+    population = generate_unique_population(population_size, num_nodes)
+else:
+    population = None
+
+# Scatter the population across all processes
+population_chunk = np.array_split(population, size)[rank]
+
+# Start execution timer
+start_time = time.time()
+
+# Main Genetic Algorithm loop
 best_fitness = float('inf')  # Initialize best fitness
 stagnation_counter = 0  # Tracks stagnation count
 
-import time
-start_time = time.time()  # Start execution timer
-
-# Set up multiprocessing pool for parallel execution
-pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-
-# Main Genetic Algorithm loop
 for generation in range(num_generations):
     """
     This loop runs the genetic algorithm for the specified number of generations.
@@ -134,24 +148,34 @@ for generation in range(num_generations):
     """
 
     # Parallelized Fitness Calculation
-    fitness_values = np.array([-calculate_fitness(route, distance_matrix) for route in population])
-    current_best_fitness = np.min(fitness_values)
-    
-    # Track Best Solution and Handle Stagnation
-    if current_best_fitness < best_fitness:
-        best_fitness = current_best_fitness
-        stagnation_counter = 0  # Reset stagnation if improvement occurs
-    else:
-        stagnation_counter += 1  # Increase stagnation counter if no improvement
+    fitness_values = np.array([-calculate_fitness(route, distance_matrix) for route in population_chunk])
 
-    # Regenerate population if stagnation limit is reached
-    if stagnation_counter >= stagnation_limit:
-        print(f"Regenerating population at generation {generation} due to stagnation")
-        best_individual = population[np.argmin(fitness_values)]
-        population = generate_unique_population(population_size - 1, num_nodes)
-        population.append(best_individual)
-        stagnation_counter = 0
-        continue
+    # Gather all fitness values to the root process
+    all_fitness_values = comm.gather(fitness_values, root=0)
+
+    # Root process processes the results
+    if rank == 0:
+        all_fitness_values = np.concatenate(all_fitness_values)
+        current_best_fitness = np.min(all_fitness_values)
+
+        # Track Best Solution and Handle Stagnation
+        if current_best_fitness < best_fitness:
+            best_fitness = current_best_fitness
+            stagnation_counter = 0  # Reset stagnation if improvement occurs
+        else:
+            stagnation_counter += 1  # Increase stagnation counter if no improvement
+
+        # Regenerate population if stagnation limit is reached
+        if stagnation_counter >= stagnation_limit:
+            print(f"Regenerating population at generation {generation} due to stagnation")
+            best_individual = population[np.argmin(all_fitness_values)]
+            population = generate_unique_population(population_size - 1, num_nodes)
+            population.append(best_individual)
+            stagnation_counter = 0
+            continue
+
+    # Broadcast the best fitness back to all processes
+    best_fitness = comm.bcast(best_fitness, root=0)
 
     # Adjust mutation rate dynamically
     mutation_rate = adaptive_mutation_rate(generation, num_generations)
@@ -162,34 +186,39 @@ for generation in range(num_generations):
 
     # Selection and Crossover (Parallelized Crossover)
     selected = select_in_tournament(population, fitness_values)
-    offspring = pool.starmap(order_crossover, [(selected[i][1:], selected[i + 1][1:]) for i in range(0, len(selected), 2)])
+    offspring = [order_crossover(selected[i][1:], selected[i + 1][1:]) for i in range(0, len(selected), 2)]
     offspring = [[0] + child for child in offspring]  # Ensure starting city is 0
 
     # Mutation (Parallelized)
-    mutated_offspring = pool.starmap(mutate, [(route, mutation_rate) for route in offspring])
+    mutated_offspring = [mutate(route, mutation_rate) for route in offspring]
 
     # Local Search (Parallelized)
     best_idx = np.argmin(fitness_values)
-    population[best_idx] = pool.apply(local_search, (population[best_idx], distance_matrix))
+    population[best_idx] = local_search(population[best_idx], distance_matrix)
 
     # Replacement with Elitism (Preserve best individuals)
     for i in range(elitism_size):
         population[np.argmax(fitness_values)] = elite[i]
 
     # Print progress
-    print(f"Generation {generation}: Best fitness = {current_best_fitness}")
+    if rank == 0:
+        print(f"Generation {generation}: Best fitness = {current_best_fitness}")
 
 # Execution time tracking
-end_time = time.time()
-print(f"Execution Time: {end_time - start_time:.2f} seconds")
+if rank == 0:
+    end_time = time.time()
+    print(f"Execution Time: {end_time - start_time:.2f} seconds")
 
 # Final evaluation and best solution output
-fitness_values = np.array([-calculate_fitness(route, distance_matrix) for route in population])
-best_idx = np.argmin(fitness_values)
-best_solution = population[best_idx]
-print("Best Solution:", best_solution)
-print("Total Distance:", -calculate_fitness(best_solution, distance_matrix))
+fitness_values = np.array([-calculate_fitness(route, distance_matrix) for route in population_chunk])
+all_fitness_values = comm.gather(fitness_values, root=0)
 
-# Close multiprocessing pool
-pool.close()
-pool.join()
+if rank == 0:
+    all_fitness_values = np.concatenate(all_fitness_values)
+    best_idx = np.argmin(all_fitness_values)
+    best_solution = population[best_idx]
+    print("Best Solution:", best_solution)
+    print("Total Distance:", -calculate_fitness(best_solution, distance_matrix))
+
+# Finalize MPI
+MPI.Finalize()
