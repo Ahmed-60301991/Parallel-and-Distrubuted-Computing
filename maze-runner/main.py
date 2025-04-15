@@ -21,9 +21,9 @@ def compare_results(results):
 
     for idx, (time_taken, move_count, backtracks) in enumerate(results, 1):
         backtrack_str = str(backtracks) if backtracks is not None else "N/A"
-        print(f"{idx:<10} {time_taken:<10.2f} {move_count:<10} {backtrack_str:<12}")
+        print(f"{idx:<10} {time_taken:<10.5f} {move_count:<10} {backtrack_str:<12}")
     
-    print("\n🏁 Best Time:", f"{best[0]:.2f} seconds with {best[1]} moves")
+    print(" Best Time:", f"{best[0]:.2f} seconds with {best[1]} moves")
 
 def main():
     parser = argparse.ArgumentParser()
