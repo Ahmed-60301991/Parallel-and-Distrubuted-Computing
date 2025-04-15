@@ -116,24 +116,41 @@ This makes it a robust solution capable of handling both simple and complex maze
 
 
 # Question 2
-## Solution: Parallel Maze Exploration Using MPI4Py
+## Solution: Parallel Maze Exploration Using MPI4Py and Celery
 
-In this solution, we modified the maze exploration program to run multiple maze explorers in parallel across multiple machines using MPI4Py. This setup allows us to efficiently compare the performance of different explorers and identify the best route out of the maze. The solution leverages MPI to distribute tasks across a master-worker architecture, where each worker computes the exploration statistics for a specific number of explorers. 
+In this solution, we modified the maze exploration program to run multiple maze explorers in parallel across multiple machines using MPI4Py and Celery. This setup allows us to efficiently compare the performance of different explorers and identify the best route out of the maze. The solution leverages both MPI and Celery to distribute tasks across a master-worker architecture, where each worker computes the exploration statistics for a specific number of explorers. 
 
 ### Key Concepts Used:
 - **MPI4Py**: This Python library allows us to use the Message Passing Interface (MPI) to distribute tasks among multiple machines. We used MPI to distribute maze exploration tasks to worker processes on multiple computers, with one master node coordinating the work and collecting results.
-- **Task Queue System**: We created a task list for each explorer, which was distributed to available worker processes. This allows for efficient parallel execution.
+- **Celery**: Celery is a distributed task queue system. In this solution, Celery was integrated to further distribute tasks efficiently within the same system. Celery workers were used to execute individual maze exploration tasks asynchronously, allowing us to run tasks in parallel across multiple processes and gather results efficiently.
+- **Task Queue System**: We created a task list for each explorer, which was distributed to available worker processes using both MPI4Py and Celery. This allows for efficient parallel execution in a more dynamic and scalable manner.
 - **Performance Comparison**: After the exploration tasks were completed, the results were gathered at the master node. The best explorer was identified based on the fastest time or the fewest moves, and the results for each explorer were displayed for comparison.
 
 ### How the Solution Works:
-1. **Task Distribution**: The main program generates a list of tasks based on the user-specified number of explorers (`--explorers`). In my own, I used 3, so that I have 1 master master, which is my VM, and 2 worker VMs, which are my teams other VMs. These tasks are divided among available worker nodes, with each node performing the maze exploration for a subset of explorers.
-2. **Running Explorers in Parallel**: Each worker node runs the `explorer_task` function, which creates a maze, initializes an explorer, and measures the time taken and number of moves made during the exploration.
-3. **Collecting Results**: Once all tasks are completed, the results (time taken, number of moves) from all explorers are gathered at the master node using `MPI.COMM_WORLD.gather()`.
+1. **Task Distribution**: The main program generates a list of tasks based on the user-specified number of explorers (`--explorers`). In my case, I used 3, so that I have 1 master VM, which is my local machine, and 2 worker VMs, which are my team's other VMs. These tasks are divided among available worker nodes, with each node performing the maze exploration for a subset of explorers. 
+2. **Running Explorers in Parallel with Celery**: Each worker node runs the `explorer_task` function via Celery. The task creates a maze, initializes an explorer, and measures the time taken and number of moves made during the exploration. Celery enables these tasks to be run asynchronously across multiple workers.
+3. **Collecting Results**: Once all tasks are completed, the results (time taken, number of moves) from all explorers are gathered at the master node using `MPI.COMM_WORLD.gather()` for MPI and Celery's result backend for asynchronous result collection.
 4. **Comparison and Output**: The master node compares the results, identifying the best explorer based on the fastest time. It also displays the performance statistics for each explorer, such as total time, total moves, and the number of backtrack operations.
 
 ### Output:
-The output includes the statistics for each explorer, such as the time taken, number of moves made, and the average moves per second. The best explorer, in terms of time, is displayed with its corresponding performance metrics.
 
+Using both MPI4Py and Celery, the results showed the performance for each explorer across 4 different runs. Below is a snapshot of the final results:
+
+### Celery Output
+pygame 2.6.1 (SDL 2.28.4, Python 3.12.7)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+
+Tasks submitted to Celery... waiting for results.
+
+--- Explorer Performance on Static Maze --- Explorer Time (s) Moves Backtracks
+1 0.00149 1279 N/A
+2 0.00151 1279 N/A
+3 0.00144 1279 N/A
+4 0.00144 1279 N/A
+
+Best Time: 0.00144 seconds with 1279 moves
+
+### MPI4PY Output
 pygame 2.6.1 (SDL 2.28.4, Python 3.12.2)  
 Hello from the pygame community. https://www.pygame.org/contribute.html
 
@@ -181,14 +198,17 @@ Explorer   Time (s)   Moves      Backtracks
 Best Time: 0.00124 seconds with 1279 moves
 
 
+
 ### Key Steps Taken:
-1. **Modified the Main Program**: We integrated MPI4Py to manage the distribution of tasks between the master and worker nodes.
-2. **Used `MPI.COMM_WORLD` to Manage Communication**: This allowed workers to send their results back to the master node for comparison.
-3. **Explorers Run in Parallel**: Multiple explorers were run simultaneously, with the results gathered and analyzed.
+1. **Modified the Main Program**: We integrated MPI4Py to manage the distribution of tasks between the master and worker nodes. Additionally, Celery was added to handle asynchronous task execution and communication within the system.
+2. **Used `MPI.COMM_WORLD` to Manage Communication**: This allowed workers to send their results back to the master node for comparison. Celery was also used to send and receive tasks between workers and the main program.
+3. **Explorers Run in Parallel**: Multiple explorers were run simultaneously across multiple workers using Celery and MPI, with the results gathered and analyzed for comparison.
 4. **Improved Task Distribution**: The program was designed to divide the task of exploring the maze among all available machines in a balanced manner, ensuring that no single worker was overloaded with too many explorers.
 
 ### Conclusion:
-Using MPI4Py, we successfully parallelized the maze exploration task, enabling multiple explorers to run concurrently on multiple machines. The system efficiently compared their performance and identified the best-performing explorer. This approach can be further enhanced by integrating a task queue system like Celery and RabbitMQ for more dynamic task distribution in larger setups.
+Using both MPI4Py and Celery, we successfully parallelized the maze exploration task, enabling multiple explorers to run concurrently across different machines. The system efficiently compared their performance and identified the best-performing explorer based on the time taken to solve the maze. This approach can be further enhanced by scaling Celery workers and integrating RabbitMQ for dynamic task distribution, which could be especially useful in larger, more complex setups.
+
+In the tests performed, the best explorer achieved a time of **0.00144 seconds** with **1279 moves**. This demonstrates the effectiveness of parallel processing techniques, including Celery and MPI4Py, in solving computationally intensive problems such as maze exploration.
 
 
 # Question 3
@@ -216,7 +236,7 @@ Below are the statistics for each maze explorer on the static maze:
 
 - **Average Moves per Second:** Given the short time and fixed number of moves, each explorer achieved a processing speed exceeding **1 million moves per second**, demonstrating high computational efficiency. This high throughput reflects both optimized logic and the low complexity of the maze environment.
 
-### 🏁 **Best Time and Performance:**
+### **Best Time and Performance:**
 - The best performance was delivered by **Explorer 5**, with a completion time of **0.00119 seconds** and **1279 moves**, making it the fastest among all explorers in this run.
 
 ### Conclusion:
