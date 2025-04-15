@@ -9,7 +9,6 @@ def explorer_task(maze_type, width, height, visualize):
     
     time_taken, moves = explorer.solve()
 
-    # Optional: track backtracks if implemented
     backtracks = getattr(explorer, 'backtracks', None)
 
     return (time_taken, len(moves), backtracks)
@@ -23,7 +22,7 @@ def compare_results(results):
         backtrack_str = str(backtracks) if backtracks is not None else "N/A"
         print(f"{idx:<10} {time_taken:<10.5f} {move_count:<10} {backtrack_str:<12}")
     
-    print(" Best Time:", f"{best[0]:.2f} seconds with {best[1]} moves")
+    print(" Best Time:", f"{best[0]:.5f} seconds with {best[1]} moves")
 
 def main():
     parser = argparse.ArgumentParser()
