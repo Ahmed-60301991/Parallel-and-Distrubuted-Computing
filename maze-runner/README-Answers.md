@@ -126,7 +126,7 @@ In this solution, we modified the maze exploration program to run multiple maze 
 - **Performance Comparison**: After the exploration tasks were completed, the results were gathered at the master node. The best explorer was identified based on the fastest time or the fewest moves, and the results for each explorer were displayed for comparison.
 
 ### How the Solution Works:
-1. **Task Distribution**: The main program generates a list of tasks based on the user-specified number of explorers (`--explorers`). These tasks are divided among available worker nodes, with each node performing the maze exploration for a subset of explorers.
+1. **Task Distribution**: The main program generates a list of tasks based on the user-specified number of explorers (`--explorers`). In my own, I used 3, so that I have 1 master master, which is my VM, and 2 worker VMs, which are my teams other VMs. These tasks are divided among available worker nodes, with each node performing the maze exploration for a subset of explorers.
 2. **Running Explorers in Parallel**: Each worker node runs the `explorer_task` function, which creates a maze, initializes an explorer, and measures the time taken and number of moves made during the exploration.
 3. **Collecting Results**: Once all tasks are completed, the results (time taken, number of moves) from all explorers are gathered at the master node using `MPI.COMM_WORLD.gather()`.
 4. **Comparison and Output**: The master node compares the results, identifying the best explorer based on the fastest time. It also displays the performance statistics for each explorer, such as total time, total moves, and the number of backtrack operations.
